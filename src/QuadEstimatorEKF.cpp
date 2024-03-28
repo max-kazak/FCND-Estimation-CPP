@@ -203,6 +203,16 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+  const float cosR = cos(roll);
+  const float sinR = sin(roll);
+  const float cosP = cos(pitch);
+  const float sinP = sin(pitch);
+  const float cosY = cos(yaw);
+  const float sinY = sin(yaw);
+
+  RbgPrime << -cosP * sinY,   -sinR * sinP * sinY - cosR * cosY,  - cosR * sinP * sinY + sinR * cosY,
+              cosP * cosY,    sinR * sinP * cosY - cosR * sinY,   cosR * sinP * cosY + sinR * sinY,
+              0,              0,                                  0;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -249,6 +259,21 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+  VectorXf u(3);
+  u << accel[0], accel[1], accel[2];
+
+
+	gPrime(0, 3) = dt;
+	gPrime(1, 4) = dt;
+	gPrime(2, 5) = dt;
+
+  VectorXf RbgP_u_dt = RbgPrime * u * dt;
+
+	gPrime(3, 6) = RbgP_u_dt(0);
+	gPrime(4, 6) = RbgP_u_dt(1);
+	gPrime(5, 6) = RbgP_u_dt(2);
+
+	ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
